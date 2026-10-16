@@ -2,12 +2,12 @@
 set -e
 mkdir -p www && cp index.html www/index.html
 npm init -y > /dev/null
-npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/geolocation@8
-echo '{"appId":"id.nusaga.app","appName":"Nusaga","webDir":"www","plugins":{"CapacitorHttp":{"enabled":true},"SystemBars":{"style":"LIGHT"}}}' > capacitor.config.json
+npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/geolocation@8 @capacitor/local-notifications@8
+echo '{"appId":"id.nusaga.app","appName":"Nusaga","webDir":"www","plugins":{"CapacitorHttp":{"enabled":true},"SystemBars":{"style":"LIGHT"},"LocalNotifications":{"smallIcon":"ic_stat_nusaga"}}}' > capacitor.config.json
 npx cap add android
 # izin lokasi
 M=android/app/src/main/AndroidManifest.xml
-sed -i 's#<application#<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <application#' "$M"
+sed -i 's#<application#<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <application#' "$M"
 # ikon aplikasi (dibuat sendiri; dilewati kalau gagal)
 pip install pillow -q || true
 python3 - <<'PY' || echo "ikon dilewati"
@@ -30,6 +30,14 @@ open(f'{R}/values/ic_launcher_background.xml','w').write('<?xml version="1.0" en
 os.makedirs(f'{R}/mipmap-anydpi-v26',exist_ok=True)
 x='<?xml version="1.0" encoding="utf-8"?>\n<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n    <background android:drawable="@color/ic_launcher_background"/>\n    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n</adaptive-icon>\n'
 for n in ('ic_launcher','ic_launcher_round'): open(f'{R}/mipmap-anydpi-v26/{n}.xml','w').write(x)
+# ikon kecil notifikasi (siluet putih)
+for d,z in {'mdpi':24,'hdpi':36,'xhdpi':48,'xxhdpi':72,'xxxhdpi':96}.items():
+    q=ic.resize((z,z),Image.LANCZOS);px=q.load();o=Image.new('RGBA',(z,z),(0,0,0,0));op=o.load()
+    for x in range(z):
+        for y in range(z):
+            r,g,b,a=px[x,y]
+            if a>40 and min(r,g,b)>185: op[x,y]=(255,255,255,255)
+    os.makedirs(f'{R}/drawable-{d}',exist_ok=True);o.save(f'{R}/drawable-{d}/ic_stat_nusaga.png')
 print('ikon dibuat')
 PY
 # kunci tetap supaya APK baru bisa menimpa yang lama
