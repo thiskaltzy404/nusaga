@@ -18,13 +18,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Siapkan proyek
-        run: |
-          mkdir -p www && cp index.html www/index.html
-          npm init -y
-          npm i @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/geolocation@8
-          echo '{"appId":"id.nusaga.app","appName":"Nusaga","webDir":"www","plugins":{"CapacitorHttp":{"enabled":true}}}' > capacitor.config.json
-          npx cap add android
-          npx cap sync android
+        run: bash setup.sh
       - name: Bangun APK
         working-directory: android
         run: |
